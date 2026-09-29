@@ -1,5 +1,7 @@
 import os
 import logging
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
@@ -62,10 +64,24 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     logging.error("Exception while handling update:", exc_info=context.error)
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"OK")
+
+    def log_message(self, format, *args):
+        pass
+
+def run_health_server():
+    port = int(os.getenv("PORT", "10000"))
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    server.serve_forever()
 
 def main():
     if not TOKEN:
-        raise RuntimeError("BOT_TOKEN is not set")
+        raise RuntimeError ("BOT_TOKEN is not set"
+        threading.Thread(target=run_health_server, daemon=True).start()
 
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
