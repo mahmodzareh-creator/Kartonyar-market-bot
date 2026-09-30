@@ -80,7 +80,7 @@ def run_health_server():
 
 def main():
     if not TOKEN:
-        raise RuntimeError ("BOT_TOKEN is not set"
+        raise RuntimeError ("BOT_TOKEN is not set")
         threading.Thread(target=run_health_server, daemon=True).start()
 
     app = Application.builder().token(TOKEN).build()
